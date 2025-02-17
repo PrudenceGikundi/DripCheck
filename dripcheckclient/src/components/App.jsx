@@ -8,17 +8,20 @@ import Marketplace from "./Marketplace";
 import Profile from "./Profile";
 import PostYourDrip from './PostYourDrip';
 import Header from "./Header";
+import nav1 from "./navbar/nav1";
 import Footer from "./Footer";
 import { OutfitProvider } from "../context/OutfitContext"; // Import the OutfitProvider
+import Landing from "./landing";
 
 function App() {
   return (
     <OutfitProvider> {/* Wrap the application in the OutfitProvider */}
       <Router>
         <div className="bg-[#121212] min-h-screen text-white">
-          <Header />
+          <nav1 />
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path ="/" element={<Landing />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/dripbattle" element={<DripBattle />} />

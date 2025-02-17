@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PostYourDripButton from "./postyourdripbutton"; // Import the button component
 import { useOutfitContext } from "../context/OutfitContext"; // Import the context
+import Nav2 from "./navbar/nav2";
 
 const DripBattle = () => {
   // Sample competitors data (you can replace this with real data)
@@ -54,6 +55,9 @@ const DripBattle = () => {
   };
 
   return (
+    <div>
+      <Nav2 />
+    
     <div className="dripbattle-container flex bg-gray-900 text-white p-6">
       <div className="main-content w-3/4 pr-6">
         <h2 className="text-2xl mb-4">Drip Battle</h2>
@@ -125,6 +129,7 @@ const DripBattle = () => {
       <div className="mt-6">
         <PostYourDripButton />
       </div>
+    </div>
     </div>
   );
 };
