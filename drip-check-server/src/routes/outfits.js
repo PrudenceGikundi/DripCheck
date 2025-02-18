@@ -1,8 +1,9 @@
-const express = require("express");
+import express from "express";
+import Outfit from "../models/Outfit.js";
+import Rating from "../models/Rating.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+
 const router = express.Router();
-const Outfit = require("../models/Outfit");
-const Rating = require("../models/Rating"); // Import Rating model
-const authMiddleware = require("../middleware/authMiddleware");
 
 // Fetch all outfits
 router.get("/", async (req, res) => {
@@ -45,12 +46,12 @@ router.post("/:id/rate", authMiddleware, async (req, res) => {
         
         // Recalculate the average rating
         const totalRatings = outfit.ratings.length;
-        const sumRatings = await Rating.aggregate([
+        const [sumRatings] = await Rating.aggregate([
             { $match: { outfit: outfit._id } },
             { $group: { _id: "$outfit", totalRating: { $sum: "$rating" } } }
         ]);
 
-        outfit.averageRating = sumRatings[0].totalRating / totalRatings; // Calculate average rating
+        outfit.averageRating = sumRatings.totalRating / totalRatings; // Calculate average rating
         await outfit.save(); // Save the updated outfit
 
         res.status(201).json(outfit); // Return updated outfit with new rating
@@ -59,4 +60,4 @@ router.post("/:id/rate", authMiddleware, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

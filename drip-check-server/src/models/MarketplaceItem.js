@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const marketplaceItemSchema = new mongoose.Schema({
     title: { type: String, required: true },
@@ -9,4 +9,4 @@ const marketplaceItemSchema = new mongoose.Schema({
     seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },  // Link to User Model (Seller)
 }, { timestamps: true });
 
-module.exports = mongoose.model("MarketplaceItem", marketplaceItemSchema);
+export default mongoose.model("MarketplaceItem", marketplaceItemSchema);

@@ -1,16 +1,15 @@
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { validationResult } = require("express-validator");
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { validationResult } from "express-validator";
 
 // Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-};
+const generateToken = (id) => 
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
 // @route   POST /api/auth/register
 // @desc    Register new user
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -19,11 +18,10 @@ exports.registerUser = async (req, res) => {
 
     const { username, email, password } = req.body;
 
-    let userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = new User({ username, email, password: hashedPassword });
     await user.save();
 
@@ -34,14 +32,14 @@ exports.registerUser = async (req, res) => {
       token: generateToken(user._id) 
     });
   } catch (error) {
-    console.error("❌ Error registering user:", error);  // Log error
+    console.error("❌ Error registering user:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
 
 // @route   POST /api/auth/login
 // @desc    Authenticate user & get token
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -59,9 +57,8 @@ exports.loginUser = async (req, res) => {
       email: user.email, 
       token: generateToken(user._id) 
     });
-
   } catch (error) {
-    console.error("❌ Server error:", error);  // Log error
+    console.error("❌ Server error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
