@@ -1,8 +1,8 @@
-const DripBattle = require("../models/DripBattle");
-const MarketplaceItem = require("../models/MarketplaceItem");
+import DripBattle from "../models/DripBattle.js";
+import MarketplaceItem from "../models/MarketplaceItem.js";
 
 // Create a battle for an outfit
-exports.createBattle = async (req, res) => {
+export const createBattle = async (req, res) => {
     try {
         const { outfitId } = req.body;
 
@@ -23,7 +23,7 @@ exports.createBattle = async (req, res) => {
 };
 
 // Get all battles (Drip Battle leaderboard)
-exports.getBattles = async (req, res) => {
+export const getBattles = async (req, res) => {
     try {
         const battles = await DripBattle.find()
             .populate("outfit")
@@ -36,7 +36,7 @@ exports.getBattles = async (req, res) => {
 };
 
 // Like an outfit in a battle
-exports.likeOutfit = async (req, res) => {
+export const likeOutfit = async (req, res) => {
     try {
         const { battleId } = req.body;
 

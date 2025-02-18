@@ -1,10 +1,11 @@
-const express = require("express");
+import express from "express";
+import Outfit from "../models/Outfit.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
 const router = express.Router();
-const Outfit = require("../models/Outfit");
-const authMiddleware = require("../middleware/authMiddleware");
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 
 // User Login
 router.post("/login", async (req, res) => {
@@ -44,4 +45,4 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

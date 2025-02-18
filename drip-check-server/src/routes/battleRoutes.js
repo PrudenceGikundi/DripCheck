@@ -1,6 +1,6 @@
-const express = require("express");
-const { createBattle, getBattles, likeOutfit } = require("../controllers/battleController");
-const protect = require("../middleware/authMiddleware");
+import express from "express";
+import { createBattle, getBattles, likeOutfit } from "../controllers/battleController.js";
+import protect from "../middleware/authMiddleware.js"; 
 
 const router = express.Router();
 
@@ -13,4 +13,4 @@ router.get("/battles", getBattles);
 // Like an outfit (protected route)
 router.post("/like", protect, likeOutfit);
 
-module.exports = router;
+export default router;

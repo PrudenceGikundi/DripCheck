@@ -1,6 +1,6 @@
-const express = require("express");
-const { createItem, getItems } = require("../controllers/marketplaceController");
-const protect = require("../middleware/authMiddleware");
+import express from "express";
+import { createItem, getItems } from "../controllers/marketplaceController.js";
+import protect from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -10,4 +10,4 @@ router.post("/item", protect, createItem);
 // Get all marketplace items (public route)
 router.get("/items", getItems);
 
-module.exports = router;
+export default router;

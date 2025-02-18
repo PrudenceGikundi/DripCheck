@@ -1,4 +1,4 @@
-const express = require("express");
+/*const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -38,3 +38,44 @@ app.use("/api/battle", battleRoutes);
 // Server Listening
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+*/
+
+
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
+import outfitRoutes from "./routes/outfitRoutes.js"; 
+import marketplaceRoutes from "./routes/marketplaceRoutes.js";
+import battleRoutes from "./routes/battleRoutes.js";
+
+dotenv.config();
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(cors());
+
+// Connect to MongoDB
+mongoose
+    .connect("mongodb://localhost:27017/prudenceHackathon")
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
+console.log("Mongo URI:", process.env.MONGO_URI);
+
+// Log Routes
+console.log("✅ Auth Routes Loaded");
+console.log("✅ Outfit Routes Loaded");
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/outfits", outfitRoutes);
+app.use("/api/marketplace", marketplaceRoutes);
+app.use("/api/battle", battleRoutes);
+
+// Server Listening
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
