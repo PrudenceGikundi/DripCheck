@@ -2,7 +2,11 @@ const express = require("express");
 const router = express.Router();
 const Outfit = require("../models/Outfit");
 const Rating = require("../models/Rating"); // Import Rating model
-const authMiddleware = require("../middleware/authMiddleware");
+const verifyClerkSession = require("../middleware/clerkMiddleware"); // Updated middleware import
+const multer = require("multer");
+const cloudinary = require("../config/cloudinary");
+
+const upload = multer({ storage: multer.memoryStorage() }); // Use memory storage for multer
 
 // Fetch all outfits
 router.get("/", async (req, res) => {
@@ -14,48 +18,91 @@ router.get("/", async (req, res) => {
     }
 });
 
-// Rate an outfit (POST)
-router.post("/:id/rate", authMiddleware, async (req, res) => {
+// Post an outfit
+router.post("/", verifyClerkSession, upload.single("image"), async (req, res) => {
     try {
-        const { rating } = req.body; // Get the rating from the request body
+        const { description } = req.body;
 
-        // Ensure the rating is between 1 and 5
+        if (!req.file) {
+            return res.status(400).json({ error: "Image is required" });
+        }
+
+        if (!description) {
+            return res.status(400).json({ error: "Description is required" });
+        }
+
+        // Upload image to Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+                { folder: "dripcheck/outfits" },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            ).end(req.file.buffer);
+        });
+
+        const outfit = new Outfit({
+            image: uploadResult.secure_url,
+            description,
+            user: req.user.id, // User ID from Clerk
+        });
+
+        await outfit.save();
+        res.status(201).json(outfit);
+    } catch (error) {
+        console.error("❌ Error posting outfit:", error.message);
+        res.status(500).json({ error: "Server error. Please try again later." });
+    }
+});
+
+// Rate an outfit (POST)
+router.post("/:id/rate", verifyClerkSession, async (req, res) => {
+    try {
+        const { rating } = req.body;
+
         if (rating < 1 || rating > 5) {
             return res.status(400).json({ message: "Rating must be between 1 and 5" });
         }
 
-        const outfit = await Outfit.findById(req.params.id); // Find outfit by ID
+        const outfit = await Outfit.findById(req.params.id);
         if (!outfit) return res.status(404).json({ message: "Outfit not found" });
 
-        // Check if the user has already rated this outfit
-        const existingRating = await Rating.findOne({ user: req.user.id, outfit: req.params.id });
-        if (existingRating) return res.status(400).json({ message: "You have already rated this outfit" });
-
-        // Create a new rating
         const newRating = new Rating({
             user: req.user.id,
             outfit: req.params.id,
             rating,
         });
 
-        await newRating.save(); // Save the rating
+        await newRating.save();
 
-        // Add rating to the outfit's ratings array
-        outfit.ratings.push(newRating._id);
-        
-        // Recalculate the average rating
-        const totalRatings = outfit.ratings.length;
-        const sumRatings = await Rating.aggregate([
-            { $match: { outfit: outfit._id } },
-            { $group: { _id: "$outfit", totalRating: { $sum: "$rating" } } }
-        ]);
+        const ratings = await Rating.find({ outfit: req.params.id });
+        const averageRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
 
-        outfit.averageRating = sumRatings[0].totalRating / totalRatings; // Calculate average rating
-        await outfit.save(); // Save the updated outfit
+        outfit.averageRating = averageRating;
+        await outfit.save();
 
-        res.status(201).json(outfit); // Return updated outfit with new rating
+        res.status(201).json(outfit);
     } catch (error) {
         res.status(500).json({ message: "Error rating outfit", error });
+    }
+});
+
+// Add a comment to an outfit (POST)
+router.post("/:id/comment", verifyClerkSession, async (req, res) => {
+    try {
+        const { comment } = req.body;
+
+        const outfit = await Outfit.findById(req.params.id);
+        if (!outfit) return res.status(404).json({ message: "Outfit not found" });
+
+        outfit.comments.push({ user: req.user.id, text: comment });
+        await outfit.save();
+
+        res.status(201).json(outfit);
+    } catch (err) {
+        console.error("❌ Error adding comment:", err.message);
+        res.status(500).json({ error: "Server error" });
     }
 });
 

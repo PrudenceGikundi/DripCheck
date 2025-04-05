@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 
-const marketplaceItemSchema = new mongoose.Schema({
+const MarketplaceItemSchema = new mongoose.Schema({
     title: { type: String, required: true },
     image: { type: String, required: true },
     description: { type: String, required: true },
-    priceKsh: { type: Number, required: true },  // Price in KSH
+    priceKsh: { type: Number, required: true },
     caption: { type: String },
-    seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },  // Link to User Model (Seller)
-}, { timestamps: true });
+    seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+});
 
-module.exports = mongoose.model("MarketplaceItem", marketplaceItemSchema);
+module.exports = mongoose.model("MarketplaceItem", MarketplaceItemSchema);

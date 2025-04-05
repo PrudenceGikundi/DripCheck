@@ -1,32 +1,84 @@
 const express = require("express");
-const { registerUser, loginUser } = require("../controllers/authController");
-const { body } = require("express-validator");
+const clerkClient = require("../config/clerk");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
+const verifyClerkSession = require("../middleware/clerkMiddleware");
 
 const router = express.Router();
-const protect = require("../middleware/authMiddleware");  // Correct import of the middleware
 
-// Protected route (only accessible if the user is authenticated)
-router.get("/profile", protect, (req, res) => {
-    res.json({ message: "Welcome to your profile!", user: req.user });
+// Register User
+router.post("/register", async (req, res) => {
+    const { email, password, username } = req.body;
+
+    if (!email || !password || !username) {
+        return res.status(400).json({ error: "Email, password, and username are required." });
+    }
+
+    try {
+        const user = await clerkClient.users.createUser({
+            emailAddress: [email],
+            password,
+            username,
+        });
+
+        res.status(201).json({ message: "User registered successfully.", user });
+    } catch (error) {
+        console.error("❌ Error during registration:", error);
+        res.status(400).json({ error: error.message });
+    }
 });
 
-router.post(
-  "/register",
-  [
-    body("username", "Username is required").not().isEmpty(),
-    body("email", "Include a valid email").isEmail(),
-    body("password", "Password must be at least 6 characters").isLength({ min: 6 }),
-  ],
-  registerUser
-);
+// Login User
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
 
-router.post("/login", loginUser);
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required!" });
+    }
 
-console.log("🚀 Auth routes file loaded!");
-router.get("/test", (req, res) => {
-    console.log("🚀 Test route hit!");
-    res.json({ message: "Auth test route is working!" });
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found!" });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: "Invalid password!" });
+        }
+
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "10d" });
+
+        res.json({
+            message: "Login successful!",
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                username: user.username,
+            },
+        });
+    } catch (err) {
+        console.error("❌ Error during login:", err.message);
+        res.status(500).json({ error: "Server error" });
+    }
 });
 
+// Get User Info (Protected Route)
+router.get("/me", verifyClerkSession, async (req, res) => {
+    try {
+        const user = await clerkClient.users.getUser(req.user.id);
+        res.json({
+            message: "User profile fetched successfully!",
+            user,
+        });
+    } catch (err) {
+        console.error("❌ Error fetching user info:", err.message);
+        res.status(500).json({ error: "Server error" });
+    }
+});
 
 module.exports = router;

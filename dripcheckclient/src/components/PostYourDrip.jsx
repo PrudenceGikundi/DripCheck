@@ -1,47 +1,66 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOutfitContext } from "../context/OutfitContext"; // Import the context
+import axios from "axios";
+import { useAuth } from "@clerk/clerk-react";
 
 const PostYourDrip = () => {
-  const [outfitImage, setOutfitImage] = useState(null); // To hold the uploaded image
-  const [caption, setCaption] = useState(""); // To hold the caption text
-  const [imagePreview, setImagePreview] = useState(null); // To preview the uploaded image
-  const { addOutfit } = useOutfitContext(); // Access the context function to add outfits
-  const navigate = useNavigate(); // Initialize navigate for routing
+  const [outfitImage, setOutfitImage] = useState(null);
+  const [caption, setCaption] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { getToken } = useAuth(); // Import getToken from Clerk
+  const navigate = useNavigate();
 
   // Handle image upload
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setOutfitImage(file);
-    setImagePreview(URL.createObjectURL(file)); // Set the preview of the image
+    setImagePreview(URL.createObjectURL(file));
+    setErrorMessage(""); // Clear error message when a new image is selected
   };
 
   // Handle caption change
   const handleCaptionChange = (e) => {
     setCaption(e.target.value);
+    setErrorMessage(""); // Clear error message when caption is updated
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!outfitImage || !caption) {
-      alert("Please upload an image and provide a caption.");
-      return;
+        setErrorMessage("Image and caption are required");
+        return;
     }
 
-    // Create the outfit object
-    const newOutfit = { image: outfitImage, caption: caption };
+    const formData = new FormData();
+    formData.append("image", outfitImage);
+    formData.append("description", caption);
 
-    // Add the new outfit to the context
-    addOutfit(newOutfit);
+    try {
+        setIsSubmitting(true); // Disable the button while submitting
+        const token = await getToken();
+        const response = await axios.post("http://localhost:5000/api/outfits", formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
 
-    // Clear the form after submission
-    setOutfitImage(null);
-    setCaption("");
-    setImagePreview(null);
+        console.log("✅ Outfit posted:", response.data);
+        navigate("/dripbattle");
+    } catch (err) {
+        console.error("❌ Error posting outfit:", err.response?.data || err.message);
 
-    // Redirect to DripBattle page after submitting
-    navigate("/dripbattle");
+        if (err.response?.data?.error) {
+            setErrorMessage(err.response.data.error); // Display server error
+        } else {
+            setErrorMessage("Failed to post outfit. Please try again.");
+        }
+    } finally {
+        setIsSubmitting(false); // Re-enable the button
+    }
   };
 
   return (
@@ -52,6 +71,12 @@ const PostYourDrip = () => {
         onSubmit={handleSubmit}
         className="bg-gray-800 p-6 rounded-lg w-full max-w-md"
       >
+        {errorMessage && (
+          <div className="bg-red-500 text-white p-2 rounded mb-4">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="mb-4">
           <label
             htmlFor="outfitImage"
@@ -94,9 +119,12 @@ const PostYourDrip = () => {
 
         <button
           type="submit"
-          className="bg-[#FFD700] text-[#FF007F] px-6 py-3 rounded-full text-xl font-semibold mt-4 w-full hover:bg-yellow-500 transition duration-300"
+          className={`${
+            isSubmitting ? "bg-gray-500 cursor-not-allowed" : "bg-[#FFD700] hover:bg-yellow-500"
+          } text-[#FF007F] px-6 py-3 rounded-full text-xl font-semibold mt-4 w-full transition duration-300`}
+          disabled={isSubmitting}
         >
-          Post Your Drip
+          {isSubmitting ? "Posting..." : "Post Your Drip"}
         </button>
       </form>
     </div>
