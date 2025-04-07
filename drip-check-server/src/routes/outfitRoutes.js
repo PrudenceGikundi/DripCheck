@@ -1,11 +1,11 @@
-const express = require("express");
-const verifyClerkSession = require("../middleware/clerkMiddleware");
-const Outfit = require("../models/Outfit");
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const cloudinary = require("../config/cloudinary");
-const multer = require("multer");
+import express from "express";
+import verifyClerkSession from "../middleware/clerkMiddleware.js";
+import Outfit from "../models/Outfit.js";
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import cloudinary from "../config/cloudinary.js";
+import multer from "multer";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() }); // Use memory storage for multer
@@ -60,13 +60,19 @@ router.post("/", verifyClerkSession, upload.single("image"), async (req, res) =>
             return res.status(400).json({ error: "Image is required" });
         }
 
-        const uploadResult = await cloudinary.uploader.upload_stream(
-            { folder: "dripcheck/outfits" },
-            (error, result) => {
-                if (error) throw error;
-                return result;
-            }
-        ).end(req.file.buffer);
+        if (!description) {
+            return res.status(400).json({ error: "Description is required" });
+        }
+
+        const uploadResult = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+                { folder: "dripcheck/outfits" },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            ).end(req.file.buffer);
+        });
 
         const outfit = new Outfit({
             image: uploadResult.secure_url,
@@ -93,4 +99,4 @@ router.get("/user", verifyClerkSession, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

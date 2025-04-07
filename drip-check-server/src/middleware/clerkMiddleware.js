@@ -1,4 +1,4 @@
-const { verifyToken } = require("@clerk/backend");
+import { verifyToken } from "@clerk/backend";
 
 const verifyClerkSession = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -22,4 +22,4 @@ const verifyClerkSession = async (req, res, next) => {
     }
 };
 
-module.exports = verifyClerkSession;
+export default verifyClerkSession;

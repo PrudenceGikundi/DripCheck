@@ -1,7 +1,8 @@
-const express = require("express");
-const verifyClerkSession = require("../middleware/clerkMiddleware");
-const MarketplaceItem = require("../models/MarketplaceItem");
-const cloudinary = require("cloudinary").v2;
+import express from "express";
+import verifyClerkSession from "../middleware/clerkMiddleware.js";
+import MarketplaceItem from "../models/MarketplaceItem.js";
+import cloudinary from "cloudinary";
+import { createItem, getItems } from "../controllers/marketplaceController.js";
 
 const router = express.Router();
 
@@ -80,4 +81,4 @@ router.post("/:id/rate-seller", verifyClerkSession, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

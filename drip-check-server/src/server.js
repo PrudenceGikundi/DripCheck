@@ -1,17 +1,19 @@
-require("dotenv").config(); // Load environment variables
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import morgan from "morgan"; // For logging HTTP requests
+import helmet from "helmet"; // For securing HTTP headers
 
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./config/db");
-const morgan = require("morgan"); // For logging HTTP requests
-const helmet = require("helmet"); // For securing HTTP headers
+dotenv.config();
 
-// Import routes
-const authRoutes = require("./routes/authRoutes");
-const outfitRoutes = require("./routes/outfitRoutes");
-const marketplaceRoutes = require("./routes/marketplaceRoutes");
-const battleRoutes = require("./routes/battleRoutes");
-const aiRoutes = require("./routes/aiRoutes");
+console.log("CLERK_SECRET_KEY:", process.env.CLERK_SECRET_KEY);
+console.log("CLERK_JWT_KEY:", process.env.CLERK_JWT_KEY);
+
+import authRoutes from "./routes/authRoutes.js";
+import outfitRoutes from "./routes/outfitRoutes.js";
+import marketplaceRoutes from "./routes/marketplaceRoutes.js";
+import battleRoutes from "./routes/battleRoutes.js";
 
 const app = express();
 
@@ -35,14 +37,19 @@ app.use((err, req, res, next) => {
 });
 
 // Connect to MongoDB
-connectDB();
+mongoose
+    .connect(process.env.MONGO_URI || "mongodb://localhost:27017/prudenceHackathon", {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/outfits", outfitRoutes);
 app.use("/api/marketplace", marketplaceRoutes);
 app.use("/api/battle", battleRoutes);
-app.use("/api/ai", aiRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

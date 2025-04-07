@@ -1,4 +1,8 @@
-const express = require("express");
+import express from "express";
+import Outfit from "../models/Outfit.js";
+import Rating from "../models/Rating.js";
+import clerkMiddleware from "../middleware/clerkMiddleware.js";
+
 const router = express.Router();
 const Outfit = require("../models/Outfit");
 const Rating = require("../models/Rating"); // Import Rating model

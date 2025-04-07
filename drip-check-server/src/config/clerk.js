@@ -1,4 +1,4 @@
-const { createClerkClient } = require("@clerk/backend");
+import { createClerkClient } from "@clerk/backend";
 
 if (!process.env.CLERK_SECRET_KEY || !process.env.CLERK_JWT_KEY) {
     console.error("❌ Clerk Secret Key or JWT Key is missing. Check your .env file.");
@@ -11,4 +11,4 @@ const clerkClient = createClerkClient({
     jwtKey: process.env.CLERK_JWT_KEY, // Use the public key for JWT verification
 });
 
-module.exports = clerkClient;
+export default clerkClient;

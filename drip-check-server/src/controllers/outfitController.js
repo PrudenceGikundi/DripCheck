@@ -1,7 +1,7 @@
-const Outfit = require("../models/Outfit");
+import Outfit from "../models/Outfit.js";
 
 // Get all outfits
-exports.getAllOutfits = async (req, res) => {
+export const getAllOutfits = async (req, res) => {
   try {
     const outfits = await Outfit.find().populate("user", "username");
     res.status(200).json(outfits);
@@ -12,7 +12,7 @@ exports.getAllOutfits = async (req, res) => {
 };
 
 // Create a new outfit
-exports.createOutfit = async (req, res) => {
+export const createOutfit = async (req, res) => {
   try {
     const { image, description } = req.body;
     const outfit = new Outfit({ user: req.user.id, image, description });

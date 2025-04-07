@@ -1,5 +1,5 @@
-const express = require("express");
-const { analyzeOutfit } = require("../utils/aiHelper");
+import express from "express";
+import { analyzeOutfit } from "../utils/aiHelper.js";
 
 const router = express.Router();
 
@@ -8,4 +8,4 @@ router.post("/analyze", (req, res) => {
   res.status(200).json(result);
 });
 
-module.exports = router;
+export default router;
